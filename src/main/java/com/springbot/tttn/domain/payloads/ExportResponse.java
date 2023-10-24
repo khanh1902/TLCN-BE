@@ -1,0 +1,18 @@
+package com.springbot.tttn.domain.payloads;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.springframework.http.HttpHeaders;
+
+
+@NoArgsConstructor
+@AllArgsConstructor
+@Getter
+@Setter
+public class ExportResponse {
+    private HttpHeaders headers;
+    private byte[] pdfContent;
+
+}
