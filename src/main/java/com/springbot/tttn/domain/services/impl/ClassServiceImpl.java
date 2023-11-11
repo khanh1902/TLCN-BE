@@ -47,18 +47,13 @@ public class ClassServiceImpl implements ClassService {
     @Autowired
     private StudentRepository studentRepository;
 
-    @Autowired
-    private StudentScoresRepository studentScoresRepository;
-
     private final Logger logger = LoggerFactory.getLogger(ClassServiceImpl.class);
 
     @Override
     public ResponseObject findAll(int pageIndex, int pageSize, String search) {
         Pageable pageRequest = PageRequest.of(pageIndex, pageSize);
         Page<Class> findAll = classRepository.findAllByClassName(search, pageRequest);
-        if (findAll.isEmpty()) {
-            findAll = classRepository.findAll(pageRequest);
-        }
+
         return new ResponseObject(HttpStatus.OK, new Result("Get Student successfully", Helper.PageToMap(findAll)));
     }
 

@@ -9,17 +9,17 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class TttnApplication {
 
-//    @Autowired
-//    private LogFileConfig logFileConfig;
+    @Autowired
+    private LogFileConfig logFileConfig;
 
     public static void main(String[] args) {
         SpringApplication.run(TttnApplication.class, args);
     }
 
-//    @PostConstruct
-//    public void cleanLogFileOnStartup() {
-//        // Provide the path to your log file
-//        String logFilePath = "combine.log";
-//        logFileConfig.cleanLogFile(logFilePath);
-//    }
+    @PostConstruct
+    public void cleanLogFileOnStartup() {
+        // Provide the path to your log file
+        String logFilePath = "combine.log";
+        logFileConfig.cleanLogFile(logFilePath);
+    }
 }

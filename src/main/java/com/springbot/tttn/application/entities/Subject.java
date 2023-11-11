@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -29,7 +30,7 @@ public class Subject {
 
     @JsonIgnore
     @OneToMany(mappedBy = "subject", fetch = FetchType.LAZY)
-    private Set<StudentScores> studentScores;
+    private List<StudentScores> studentScores;
 
     public Subject(String subjectName, Integer credit) {
         this.subjectName = subjectName;

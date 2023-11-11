@@ -59,7 +59,8 @@ public class WebSecurityConfig {
                         auth.requestMatchers("/api/auth/**").permitAll()
                                 .requestMatchers("/api/**").permitAll()
                                 .anyRequest().authenticated()
-                );
+                )
+                .cors();
 
         http.authenticationProvider(authenticationProvider());
 

@@ -4,9 +4,11 @@ import com.itextpdf.text.*;
 import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
+import com.springbot.tttn.application.entities.Class;
 import com.springbot.tttn.application.entities.Student;
 import com.springbot.tttn.application.entities.StudentScores;
 import com.springbot.tttn.application.entities.Subject;
+import com.springbot.tttn.application.utils.ExcelUtils;
 import com.springbot.tttn.application.utils.FontUtils;
 import com.springbot.tttn.application.utils.Helper;
 import com.springbot.tttn.application.utils.PdfUtils;
@@ -16,6 +18,12 @@ import com.springbot.tttn.infrastructure.repositories.StudentRepository;
 import com.springbot.tttn.infrastructure.repositories.StudentScoresRepository;
 import com.springbot.tttn.infrastructure.repositories.SubjectRepository;
 import jakarta.servlet.http.HttpServletResponse;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.util.CellRangeAddress;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,10 +35,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -394,6 +399,114 @@ public class StudentScoresServiceImpl implements StudentScoresService {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             return new ResponseObject(HttpStatus.NOT_IMPLEMENTED, new Result(null, new ExportResponse(headers, e.getMessage().getBytes())));
+        }
+    }
+
+    @Override
+    public ResponseObject exportExcelScoreForSubject(Long subjectId, HttpServletResponse response) {
+        Workbook workbook = new XSSFWorkbook();
+
+
+        try {
+            Subject isSubject = subjectRepository.findBySubjectId(subjectId);
+            if (isSubject == null) {
+                throw new Exception("Subject does not exists to export");
+            }
+
+            String fileName = "DSSV_" + isSubject.getSubjectName() + ".xlsx";
+            String filePath = Helper.getFilePath(fileName);
+            File excelFile = new File(filePath);
+
+            List<StudentScores> getStudentScoresBySubject = studentScoresRepository.findBySubjectId(subjectId);
+            if (getStudentScoresBySubject.isEmpty()) {
+                throw new Exception("Subject is empty students");
+            }
+            int columnIndexStt = 0;
+            int columnIndexStudentId = 1;
+            int columnIndexStudentName = 2;
+            int columnIndexScores = 3;
+
+            Sheet sheet = workbook.createSheet(isSubject.getSubjectName());
+            int rowIndex = 0;
+
+            Row rowTitle = sheet.createRow(rowIndex);
+            //merge colum 1 2 3 to fill title
+            CellRangeAddress mergedRegion = new CellRangeAddress(0, 0, 0, 3);
+            sheet.addMergedRegion(mergedRegion);
+            Cell cellTitle = rowTitle.createCell(columnIndexStt);
+            cellTitle.setCellStyle(ExcelUtils.styleHeader(sheet));
+            cellTitle.setCellValue("DANH SÁCH SINH VIÊN MÔN " + isSubject.getSubjectName());
+
+            rowIndex++;
+
+            Row rowHeader = sheet.createRow(rowIndex);
+            Cell cellHeader = rowHeader.createCell(columnIndexStt);
+            cellHeader.setCellStyle(ExcelUtils.styleHeader(sheet));
+            cellHeader.setCellValue("STT");
+
+            cellHeader = rowHeader.createCell(columnIndexStudentId);
+            cellHeader.setCellStyle(ExcelUtils.styleHeader(sheet));
+            cellHeader.setCellValue("Mã sinh viên");
+
+            cellHeader = rowHeader.createCell(columnIndexStudentName);
+            cellHeader.setCellStyle(ExcelUtils.styleHeader(sheet));
+            cellHeader.setCellValue("Tên sinh viên");
+
+            cellHeader = rowHeader.createCell(columnIndexScores);
+            cellHeader.setCellStyle(ExcelUtils.styleHeader(sheet));
+            cellHeader.setCellValue("Điểm");
+
+            rowIndex++;
+            int countSTT = 1;
+            for (StudentScores studentScores : getStudentScoresBySubject) {
+                Row rowContent = sheet.createRow(rowIndex++);
+
+                Cell cellContent = rowContent.createCell(columnIndexStt);
+                cellContent.setCellStyle(ExcelUtils.styleContent(sheet));
+                cellContent.setCellValue(String.valueOf(countSTT++));
+
+                cellContent = rowContent.createCell(columnIndexStudentId);
+                cellContent.setCellStyle(ExcelUtils.styleContent(sheet));
+                cellContent.setCellValue(studentScores.getStudent().getStudentId());
+
+                cellContent = rowContent.createCell(columnIndexStudentName);
+                cellContent.setCellStyle(ExcelUtils.styleContent(sheet));
+                cellContent.setCellValue(studentScores.getStudent().getStudentName());
+
+                cellContent = rowContent.createCell(columnIndexScores);
+                cellContent.setCellStyle(ExcelUtils.styleContent(sheet));
+                if(studentScores.getScores() != null) {
+                    cellContent.setCellValue(studentScores.getScores());
+                }
+            }
+
+            int numberOfColumn = sheet.getRow(1).getPhysicalNumberOfCells();
+            for (int columnIndex = 0; columnIndex < numberOfColumn; columnIndex++) {
+                sheet.autoSizeColumn(columnIndex);
+            }
+
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            workbook.write(byteArrayOutputStream);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+            headers.setContentDispositionFormData("attachment", fileName);
+
+            byte[] buffer = byteArrayOutputStream.toByteArray();
+            if (excelFile.exists()) {
+                response.setContentType("application/vnd.ms-excel");
+                response.addHeader("Content-Disposition", "attachment; filename=" + fileName);
+                response.setContentLength(buffer.length);
+
+                OutputStream os = response.getOutputStream();
+                os.write(buffer);
+            }
+
+            return new ResponseObject(HttpStatus.OK, new Result("Export Success!", new ExportResponse(headers, buffer)));
+
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            return new ResponseObject(HttpStatus.NOT_IMPLEMENTED, new Result("Export failed!", e.getMessage()));
         }
     }
 }

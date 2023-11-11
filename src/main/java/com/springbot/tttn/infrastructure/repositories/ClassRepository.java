@@ -43,6 +43,10 @@ public interface ClassRepository extends JpaRepository<Class, Long> {
     @Query("SELECT c FROM Class c WHERE c.className = :className")
     Class findByClassName(String className);
 
+    @Transactional
+    @Query("SELECT COUNT(c) FROM Class c")
+    Long countClass();
+
     @Modifying
     @Transactional
     @Query("DELETE FROM Class c WHERE c.classId = :classId")

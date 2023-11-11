@@ -76,6 +76,15 @@ public interface StudentScoresRepository extends JpaRepository<StudentScores, St
 
     @Modifying
     @Transactional
+    @Query("DELETE FROM StudentScores st WHERE st.id.subjectId = :subjectId")
+    void deleteBySubjectId(Long subjectId);
+
+    @Modifying
+    @Transactional
     @Query("DELETE FROM StudentScores st WHERE st.id.studentId = :studentId AND st.id.subjectId = :subjectId")
     void DeleteByStudentIdAndSubjectId(String studentId, Long subjectId);
+
+    @Transactional
+    @Query("SELECT COUNT(s) FROM StudentScores s WHERE s.scores IS NOT NULL")
+    Long countScores();
 }

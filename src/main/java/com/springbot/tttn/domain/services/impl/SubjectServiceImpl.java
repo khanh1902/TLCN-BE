@@ -44,9 +44,6 @@ public class SubjectServiceImpl implements SubjectService {
     public ResponseObject findAll(int pageIndex, int pageSize, String search) {
         Pageable pageRequest = PageRequest.of(pageIndex, pageSize);
         Page<Subject> findAll = subjectRepository.findAllBySubjectName(search, pageRequest);
-        if(findAll.isEmpty()){
-            findAll = subjectRepository.findAll(pageRequest);
-        }
         return new ResponseObject(HttpStatus.OK, new Result("Get subject successfully", Helper.PageToMap(findAll)));
     }
 
@@ -94,6 +91,9 @@ public class SubjectServiceImpl implements SubjectService {
         if (subjectIds.size() == 1) {
             Subject isSubject = subjectRepository.findBySubjectId(subjectIds.get(0));
             logger.info("\t\t\tDelete subject: " + isSubject.toString());
+
+            deleteStudentScoresBySubject(studentScoresRepository.findBySubjectId(isSubject.getSubjectId()));
+
             subjectRepository.delete(isSubject);
             return new ResponseObject(HttpStatus.OK, new Result("Delete subject successfully", null));
         }
@@ -106,6 +106,9 @@ public class SubjectServiceImpl implements SubjectService {
             }
             isDelete = true;
             logger.info("\t\t\tDelete class: " + isSubject.toString() + " successfully");
+
+            deleteStudentScoresBySubject(isSubject.getStudentScores());
+
             subjectRepository.deleteBySubjectId(subjectId);
         }
         if(!isDelete) {
@@ -201,5 +204,13 @@ public class SubjectServiceImpl implements SubjectService {
         result.put("subjectId", subjectId.toString());
         result.put("studentIds", studentIsAdd.toString());
         return new ResponseObject(HttpStatus.OK, new Result("Register successfully", result));
+    }
+
+    private void deleteStudentScoresBySubject(List<StudentScores> studentScores) {
+        if(!studentScores.isEmpty()) {
+            for(StudentScores scores : studentScores) {
+                studentScoresRepository.deleteBySubjectId(scores.getSubject().getSubjectId());
+            }
+        }
     }
 }

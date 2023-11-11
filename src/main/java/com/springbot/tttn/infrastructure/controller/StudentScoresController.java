@@ -66,4 +66,18 @@ public class StudentScoresController {
                 .contentLength(exportResponse.getPdfContent().length)
                 .body(exportResponse.getPdfContent());
     }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/export/excel/subject")
+    public ResponseEntity<byte[]> exportExcelScoresOfSubject(@RequestParam(name = "subjectId", required = false) Long subjectId,
+                                                         HttpServletResponse response) {
+
+        ResponseObject result = studentScoresService.exportExcelScoreForSubject(subjectId, response);
+        ExportResponse exportResponse = (ExportResponse) result.getResult().getData();
+
+        return ResponseEntity.status(result.getStatusCode())
+                .headers(exportResponse.getHeaders())
+                .contentLength(exportResponse.getPdfContent().length)
+                .body(exportResponse.getPdfContent());
+    }
 }

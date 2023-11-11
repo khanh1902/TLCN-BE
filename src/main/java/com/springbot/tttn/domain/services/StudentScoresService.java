@@ -21,4 +21,6 @@ public interface StudentScoresService {
     ResponseObject exportDPFScoresForStudent(String studentId, HttpServletResponse response);
     ResponseObject exportPDFScoresOfSubject(Long subjectId, HttpServletResponse response);
 
+    ResponseObject exportExcelScoreForSubject(Long subjectId, HttpServletResponse response);
+
 }

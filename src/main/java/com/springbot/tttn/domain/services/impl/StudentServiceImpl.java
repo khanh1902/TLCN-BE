@@ -64,9 +64,6 @@ public class StudentServiceImpl implements StudentService {
         if (findAll.isEmpty()) {
             findAll = studentRepository.findAllByClassName(search, pageRequest);
         }
-        if (findAll.isEmpty()) {
-            findAll = studentRepository.findAll(pageRequest);
-        }
         return new ResponseObject(HttpStatus.OK, new Result("Get Student successfully", Helper.PageToMap(findAll)));
     }
 

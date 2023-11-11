@@ -61,6 +61,10 @@ public interface StudentRepository extends JpaRepository<Student, UUID> {
     Student findByStudentId(String studentId);
 
     @Transactional
+    @Query("SELECT COUNT(st) FROM Student st")
+    Long countStudents(String studentId);
+
+    @Transactional
     @Query("SELECT st FROM Student st WHERE st.class_.className = :className")
     List<Student> findByClassName(String className);
 
@@ -79,4 +83,6 @@ public interface StudentRepository extends JpaRepository<Student, UUID> {
     @Transactional
     @Query("DELETE FROM Student st WHERE st.studentId = :studentId")
     void deleteByStudentId(String studentId);
+
+
 }

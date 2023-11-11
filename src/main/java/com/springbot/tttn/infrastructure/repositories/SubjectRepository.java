@@ -21,7 +21,7 @@ public interface SubjectRepository extends JpaRepository<Subject, Long> {
 
     @Query("SELECT NEW com.springbot.tttn.domain.payloads.subject.SubjectDTO(s.subjectId, s.subjectName, s.credit, COUNT(ss)) " +
             "FROM Subject s " +
-            "LEFT JOIN StudentScores ss ON (s.subjectId = ss.subject.subjectId) " +// Assuming there's a relationship between Subject and Student
+            "LEFT JOIN StudentScores ss ON (s.subjectId = ss.subject.subjectId) " +
             "WHERE LOWER(s.subjectName) LIKE LOWER(CONCAT('%', :subjectName, '%')) "+
             "GROUP BY s.subjectId, s.subjectName, s.credit " +
             "ORDER BY s.subjectId ASC")
@@ -39,4 +39,8 @@ public interface SubjectRepository extends JpaRepository<Subject, Long> {
     @Transactional
     @Query("DELETE FROM Subject c WHERE c.subjectId = :subjectId")
     void deleteBySubjectId(Long subjectId);
+
+    @Transactional
+    @Query("SELECT COUNT(s) FROM Subject s")
+    Long countSubject();
 }
